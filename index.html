@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seed Phrase Generator (offline)</title>
+<style>
+:root{--bg:#eef2ef;--card:#fff;--ink:#14201b;--mut:#5b6a62;--line:#d8e0db;--acc:#0e6b55;--acc2:#16a37f;--on:#fff;--chip:#f4f8f6;--warn:#8a2020;--warnbg:#fdeeee;--sh:0 1px 2px rgba(20,32,27,.06),0 8px 24px rgba(20,32,27,.07)}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1311;--card:#151d1a;--ink:#e9f0ec;--mut:#98a8a0;--line:#26322d;--acc:#2fd3a4;--acc2:#1a9e7c;--on:#06110d;--chip:#1c2622;--warn:#ffb4ab;--warnbg:#2b1715;--sh:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35)}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(900px 380px at 50% -120px,rgba(22,163,127,.22),transparent 70%),var(--bg);padding:max(18px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
+main{max-width:600px;margin:0 auto}
+header{text-align:center;padding:14px 0 18px}
+.logo{width:54px;height:54px;margin:0 auto 10px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:linear-gradient(135deg,var(--acc2),var(--acc));box-shadow:var(--sh)}
+h1{font-size:1.6rem;letter-spacing:-.02em;margin:0}
+header p{color:var(--mut);margin:6px 0 0;font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:var(--sh)}
+.warn{display:flex;gap:10px;background:var(--warnbg);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);border-radius:14px;padding:12px 14px;font-size:.88rem;line-height:1.45;margin-bottom:16px}
+.warn:before{content:"\26A0";font-size:1.1rem}
+h2{font-size:1.1rem;margin:0 0 4px;letter-spacing:-.01em}
+.card>p{color:var(--mut);font-size:.9rem;margin:0 0 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+select,button{font:inherit;font-size:.95rem;padding:11px 16px;border-radius:12px;border:1px solid var(--line);background:var(--chip);color:var(--ink);cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s}
+button:hover,select:hover{border-color:var(--acc2)}
+button:active{transform:scale(.97)}
+button.p{flex:1;min-width:150px;background:linear-gradient(135deg,var(--acc2),var(--acc));color:var(--on);border:0;font-weight:700;box-shadow:0 4px 14px rgba(22,163,127,.35)}
+label{font-size:.88rem;color:var(--mut);display:flex;gap:6px;align-items:center;cursor:pointer}
+input[type=checkbox]{accent-color:var(--acc2);width:18px;height:18px}
+.cnt{font-size:.8rem;color:var(--mut);margin:0 0 8px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+li{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;animation:pop .35s both;animation-delay:calc(var(--i,0)*28ms)}
+li i{font-style:normal;font-size:.72rem;font-weight:700;color:var(--on);background:var(--acc2);border-radius:999px;min-width:22px;height:22px;display:grid;place-items:center;padding:0 5px}
+li b{font-weight:600;font-size:1.05rem}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){li{animation:none}button{transition:none}}
+ol.hide b,textarea.hide{filter:blur(8px);user-select:none}
+textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--chip);color:var(--ink);font:1rem ui-monospace,Menlo,monospace;resize:none}
+#txt{margin-top:12px}
+textarea:focus{outline:2px solid var(--acc2);outline-offset:1px}
+:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+#msg{min-height:1.4em;font-size:.88rem;color:var(--mut);margin-top:10px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font:.8rem ui-monospace,Menlo,monospace}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--mut);background:var(--chip);font-weight:600}
+tr:last-child td{border-bottom:0}
+.bits{font:.8rem/1.7 ui-monospace,Menlo,monospace;word-break:break-all;background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 12px}
+.ent{color:var(--ink)}.cs{color:var(--acc);font-weight:700}
+#how p{color:var(--mut);font-size:.88rem;margin:0 0 12px}
+#chkout{font-size:.95rem;line-height:1.45;margin-top:2px}
+#chkout.ok,#chkout.bad{padding:10px 12px;border-radius:12px}
+.ok{color:var(--acc);background:color-mix(in srgb,var(--acc2) 14%,transparent)}
+.bad{color:var(--warn);background:var(--warnbg)}
+</style></head><body><main>
+<header><div class="logo">&#128272;</div><h1>Seed Phrase Generator</h1><p>BIP39 &middot; 2048 words &middot; sab kuch aapke device par</p></header>
+<div class="warn"><span>Asli paise ke wallet ke liye ye tool mat use karo. Wallet app ya hardware wallet ki apni phrase use karo. Phrase kisi ko mat dikhao.</span></div>
+<section class="card">
+<div class="row">
+<select id="len" aria-label="Words"><option value="12">12 words</option><option value="24">24 words</option></select>
+<button class="p" id="go">Phrase banao</button>
+<button id="copy">Copy</button>
+</div>
+<div class="row"><label><input type="checkbox" id="hide"> Words chhupao</label></div>
+<div id="cnt" class="cnt"></div>
+<ol id="grid"></ol>
+<textarea id="txt" readonly rows="3" aria-label="Phrase text"></textarea>
+<div id="msg" role="status"></div>
+</section>
+<section class="card">
+<h2>Phrase checker</h2>
+<p>12 ya 24 words daalo, pata chalega ki valid BIP39 phrase hai ya nahi. Asli wallet ki phrase mat daalna.</p>
+<textarea id="chk" rows="3" placeholder="word1 word2 word3 ..." autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+<div class="row" style="margin-top:10px"><button id="chkgo">Check karo</button></div>
+<div id="chkout" role="status"></div>
+</section>
+<section class="card">
+<h2>Ye phrase kaise bani</h2>
+<p>Random bits, checksum, phir 11-bit ke hisaab se words.</p>
+<div id="how"></div>
+</section>
+</main>
+<script>
+const W="abandon ability able about above absent absorb abstract absurd abuse access accident account accuse achieve acid acoustic acquire across act action actor actress actual adapt add addict address adjust admit adult advance advice aerobic affair afford afraid again age agent agree ahead aim air airport aisle alarm album alcohol alert alien all alley allow almost alone alpha already also alter always amateur amazing among amount amused analyst anchor ancient anger angle angry animal ankle announce annual another answer antenna antique anxiety any apart apology appear apple approve april arch arctic area arena argue arm armed armor army around arrange arrest arrive arrow art artefact artist artwork ask aspect assault asset assist assume asthma athlete atom attack attend attitude attract auction audit august aunt author auto autumn average avocado avoid awake aware away awesome awful awkward axis baby bachelor bacon badge bag balance balcony ball bamboo banana banner bar barely bargain barrel base basic basket battle beach bean beauty because become beef before begin behave behind believe below belt bench benefit best betray better between beyond bicycle bid bike bind biology bird birth bitter black blade blame blanket blast bleak bless blind blood blossom blouse blue blur blush board boat body boil bomb bone bonus book boost border boring borrow boss bottom bounce box boy bracket brain brand brass brave bread breeze brick bridge brief bright bring brisk broccoli broken bronze broom brother brown brush bubble buddy budget buffalo build bulb bulk bullet bundle bunker burden burger burst bus business busy butter buyer buzz cabbage cabin cable cactus cage cake call calm camera camp can canal cancel candy cannon canoe canvas canyon capable capital captain car carbon card cargo carpet carry cart case cash casino castle casual cat catalog catch category cattle caught cause caution cave ceiling celery cement census century cereal certain chair chalk champion change chaos chapter charge chase chat cheap check cheese chef cherry chest chicken chief child chimney choice choose chronic chuckle chunk churn cigar cinnamon circle citizen city civil claim clap clarify claw clay clean clerk clever click client cliff climb clinic clip clock clog close cloth cloud clown club clump cluster clutch coach coast coconut code coffee coil coin collect color column combine come comfort comic common company concert conduct confirm congress connect consider control convince cook cool copper copy coral core corn correct cost cotton couch country couple course cousin cover coyote crack cradle craft cram crane crash crater crawl crazy cream credit creek crew cricket crime crisp critic crop cross crouch crowd crucial cruel cruise crumble crunch crush cry crystal cube culture cup cupboard curious current curtain curve cushion custom cute cycle dad damage damp dance danger daring dash daughter dawn day deal debate debris decade december decide decline decorate decrease deer defense define defy degree delay deliver demand demise denial dentist deny depart depend deposit depth deputy derive describe desert design desk despair destroy detail detect develop device devote diagram dial diamond diary dice diesel diet differ digital dignity dilemma dinner dinosaur direct dirt disagree discover disease dish dismiss disorder display distance divert divide divorce dizzy doctor document dog doll dolphin domain donate donkey donor door dose double dove draft dragon drama drastic draw dream dress drift drill drink drip drive drop drum dry duck dumb dune during dust dutch duty dwarf dynamic eager eagle early earn earth easily east easy echo ecology economy edge edit educate effort egg eight either elbow elder electric elegant element elephant elevator elite else embark embody embrace emerge emotion employ empower empty enable enact end endless endorse enemy energy enforce engage engine enhance enjoy enlist enough enrich enroll ensure enter entire entry envelope episode equal equip era erase erode erosion error erupt escape essay essence estate eternal ethics evidence evil evoke evolve exact example excess exchange excite exclude excuse execute exercise exhaust exhibit exile exist exit exotic expand expect expire explain expose express extend extra eye eyebrow fabric face faculty fade faint faith fall false fame family famous fan fancy fantasy farm fashion fat fatal father fatigue fault favorite feature february federal fee feed feel female fence festival fetch fever few fiber fiction field figure file film filter final find fine finger finish fire firm first fiscal fish fit fitness fix flag flame flash flat flavor flee flight flip float flock floor flower fluid flush fly foam focus fog foil fold follow food foot force forest forget fork fortune forum forward fossil foster found fox fragile frame frequent fresh friend fringe frog front frost frown frozen fruit fuel fun funny furnace fury future gadget gain galaxy gallery game gap garage garbage garden garlic garment gas gasp gate gather gauge gaze general genius genre gentle genuine gesture ghost giant gift giggle ginger giraffe girl give glad glance glare glass glide glimpse globe gloom glory glove glow glue goat goddess gold good goose gorilla gospel gossip govern gown grab grace grain grant grape grass gravity great green grid grief grit grocery group grow grunt guard guess guide guilt guitar gun gym habit hair half hammer hamster hand happy harbor hard harsh harvest hat have hawk hazard head health heart heavy hedgehog height hello helmet help hen hero hidden high hill hint hip hire history hobby hockey hold hole holiday hollow home honey hood hope horn horror horse hospital host hotel hour hover hub huge human humble humor hundred hungry hunt hurdle hurry hurt husband hybrid ice icon idea identify idle ignore ill illegal illness image imitate immense immune impact impose improve impulse inch include income increase index indicate indoor industry infant inflict inform inhale inherit initial inject injury inmate inner innocent input inquiry insane insect inside inspire install intact interest into invest invite involve iron island isolate issue item ivory jacket jaguar jar jazz jealous jeans jelly jewel job join joke journey joy judge juice jump jungle junior junk just kangaroo keen keep ketchup key kick kid kidney kind kingdom kiss kit kitchen kite kitten kiwi knee knife knock know lab label labor ladder lady lake lamp language laptop large later latin laugh laundry lava law lawn lawsuit layer lazy leader leaf learn leave lecture left leg legal legend leisure lemon lend length lens leopard lesson letter level liar liberty library license life lift light like limb limit link lion liquid list little live lizard load loan lobster local lock logic lonely long loop lottery loud lounge love loyal lucky luggage lumber lunar lunch luxury lyrics machine mad magic magnet maid mail main major make mammal man manage mandate mango mansion manual maple marble march margin marine market marriage mask mass master match material math matrix matter maximum maze meadow mean measure meat mechanic medal media melody melt member memory mention menu mercy merge merit merry mesh message metal method middle midnight milk million mimic mind minimum minor minute miracle mirror misery miss mistake mix mixed mixture mobile model modify mom moment monitor monkey monster month moon moral more morning mosquito mother motion motor mountain mouse move movie much muffin mule multiply muscle museum mushroom music must mutual myself mystery myth naive name napkin narrow nasty nation nature near neck need negative neglect neither nephew nerve nest net network neutral never news next nice night noble noise nominee noodle normal north nose notable note nothing notice novel now nuclear number nurse nut oak obey object oblige obscure observe obtain obvious occur ocean october odor off offer office often oil okay old olive olympic omit once one onion online only open opera opinion oppose option orange orbit orchard order ordinary organ orient original orphan ostrich other outdoor outer output outside oval oven over own owner oxygen oyster ozone pact paddle page pair palace palm panda panel panic panther paper parade parent park parrot party pass patch path patient patrol pattern pause pave payment peace peanut pear peasant pelican pen penalty pencil people pepper perfect permit person pet phone photo phrase physical piano picnic picture piece pig pigeon pill pilot pink pioneer pipe pistol pitch pizza place planet plastic plate play please pledge pluck plug plunge poem poet point polar pole police pond pony pool popular portion position possible post potato pottery poverty powder power practice praise predict prefer prepare present pretty prevent price pride primary print priority prison private prize problem process produce profit program project promote proof property prosper protect proud provide public pudding pull pulp pulse pumpkin punch pupil puppy purchase purity purpose purse push put puzzle pyramid quality quantum quarter question quick quit quiz quote rabbit raccoon race rack radar radio rail rain raise rally ramp ranch random range rapid rare rate rather raven raw razor ready real reason rebel rebuild recall receive recipe record recycle reduce reflect reform refuse region regret regular reject relax release relief rely remain remember remind remove render renew rent reopen repair repeat replace report require rescue resemble resist resource response result retire retreat return reunion reveal review reward rhythm rib ribbon rice rich ride ridge rifle right rigid ring riot ripple risk ritual rival river road roast robot robust rocket romance roof rookie room rose rotate rough round route royal rubber rude rug rule run runway rural sad saddle sadness safe sail salad salmon salon salt salute same sample sand satisfy satoshi sauce sausage save say scale scan scare scatter scene scheme school science scissors scorpion scout scrap screen script scrub sea search season seat second secret section security seed seek segment select sell seminar senior sense sentence series service session settle setup seven shadow shaft shallow share shed shell sheriff shield shift shine ship shiver shock shoe shoot shop short shoulder shove shrimp shrug shuffle shy sibling sick side siege sight sign silent silk silly silver similar simple since sing siren sister situate six size skate sketch ski skill skin skirt skull slab slam sleep slender slice slide slight slim slogan slot slow slush small smart smile smoke smooth snack snake snap sniff snow soap soccer social sock soda soft solar soldier solid solution solve someone song soon sorry sort soul sound soup source south space spare spatial spawn speak special speed spell spend sphere spice spider spike spin spirit split spoil sponsor spoon sport spot spray spread spring spy square squeeze squirrel stable stadium staff stage stairs stamp stand start state stay steak steel stem step stereo stick still sting stock stomach stone stool story stove strategy street strike strong struggle student stuff stumble style subject submit subway success such sudden suffer sugar suggest suit summer sun sunny sunset super supply supreme sure surface surge surprise surround survey suspect sustain swallow swamp swap swarm swear sweet swift swim swing switch sword symbol symptom syrup system table tackle tag tail talent talk tank tape target task taste tattoo taxi teach team tell ten tenant tennis tent term test text thank that theme then theory there they thing this thought three thrive throw thumb thunder ticket tide tiger tilt timber time tiny tip tired tissue title toast tobacco today toddler toe together toilet token tomato tomorrow tone tongue tonight tool tooth top topic topple torch tornado tortoise toss total tourist toward tower town toy track trade traffic tragic train transfer trap trash travel tray treat tree trend trial tribe trick trigger trim trip trophy trouble truck true truly trumpet trust truth try tube tuition tumble tuna tunnel turkey turn turtle twelve twenty twice twin twist two type typical ugly umbrella unable unaware uncle uncover under undo unfair unfold unhappy uniform unique unit universe unknown unlock until unusual unveil update upgrade uphold upon upper upset urban urge usage use used useful useless usual utility vacant vacuum vague valid valley valve van vanish vapor various vast vault vehicle velvet vendor venture venue verb verify version very vessel veteran viable vibrant vicious victory video view village vintage violin virtual virus visa visit visual vital vivid vocal voice void volcano volume vote voyage wage wagon wait walk wall walnut want warfare warm warrior wash wasp waste water wave way wealth weapon wear weasel weather web wedding weekend weird welcome west wet whale what wheat wheel when where whip whisper wide width wife wild will win window wine wing wink winner winter wire wisdom wise wish witness wolf woman wonder wood wool word work world worry worth wrap wreck wrestle wrist write wrong yard year yellow you young youth zebra zero zone zoo".split(" ");
+const frac=x=>Math.floor((x-Math.floor(x))*4294967296)>>>0;
+const K=[],H0=[];
+for(let p=2,c=0;c<64;p++){let ok=1;for(let d=2;d*d<=p;d++)if(p%d===0){ok=0;break}
+  if(ok){if(c<8)H0.push(frac(Math.sqrt(p)));K.push(frac(Math.cbrt(p)));c++}}
+function sha256(b){
+  const l=b.length,n=((l+9+63)>>6)<<6,m=new Uint8Array(n);
+  m.set(b);m[l]=128;new DataView(m.buffer).setUint32(n-4,l*8);
+  let h=H0.slice();
+  for(let o=0;o<n;o+=64){
+    const w=new Array(64),dv=new DataView(m.buffer,o,64);
+    for(let i=0;i<16;i++)w[i]=dv.getUint32(i*4);
+    for(let i=16;i<64;i++){const x=w[i-15],y=w[i-2];
+      w[i]=(w[i-16]+((x>>>7|x<<25)^(x>>>18|x<<14)^(x>>>3))+w[i-7]+((y>>>17|y<<15)^(y>>>19|y<<13)^(y>>>10)))|0}
+    let [a,b2,c,d,e,f,g,k]=h;
+    for(let i=0;i<64;i++){
+      const t1=(k+((e>>>6|e<<26)^(e>>>11|e<<21)^(e>>>25|e<<7))+((e&f)^(~e&g))+K[i]+w[i])|0;
+      const t2=(((a>>>2|a<<30)^(a>>>13|a<<19)^(a>>>22|a<<10))+((a&b2)^(a&c)^(b2&c)))|0;
+      k=g;g=f;f=e;e=(d+t1)|0;d=c;c=b2;b2=a;a=(t1+t2)|0}
+    const r=[a,b2,c,d,e,f,g,k];h=h.map((x,i)=>(x+r[i])|0)}
+  return h;
+}
+function makePhrase(n){
+  const ent=n===12?16:32,b=new Uint8Array(ent);
+  crypto.getRandomValues(b);
+  let bits=[...b].map(x=>x.toString(2).padStart(8,"0")).join("");
+  bits+=((sha256(b)[0]>>>24)&255).toString(2).padStart(8,"0").slice(0,ent/4);
+  const out=[];
+  for(let i=0;i<bits.length;i+=11)out.push(W[parseInt(bits.slice(i,i+11),2)]);
+  return out;
+}
+const $=id=>document.getElementById(id);
+let cur=[],count=0;
+function show(){
+  const g=$("grid");g.innerHTML="";
+  cur.forEach((w,i)=>{const li=document.createElement("li");li.style.setProperty("--i",i);li.innerHTML="<i>"+(i+1)+"</i><b>"+w+"</b>";g.appendChild(li)});
+  g.classList.toggle("hide",$("hide").checked);
+  $("txt").value=cur.join(" ");$("txt").classList.toggle("hide",$("hide").checked);
+  $("cnt").textContent=cur.length?"Phrase #"+count+" \u2713 Checked":"";explain();
+}
+function run(){
+  if(!(window.crypto&&crypto.getRandomValues)){$("msg").textContent="Is browser mein secure random nahi hai. Chrome ya Firefox use karo.";return}
+  let p,t=0;do{p=makePhrase(+$("len").value);t++}while(checkPhrase(p.join(" "))[0]!=="ok"&&t<10);
+  if(checkPhrase(p.join(" "))[0]!=="ok"){$("msg").textContent="Phrase check fail hui, dobara try karo.";return}
+  cur=p;count++;show();$("msg").textContent="Nayi phrase ban gayi aur checker se verify ho chuki hai.";
+}
+$("go").onclick=run;$("len").onchange=run;$("hide").onchange=show;
+$("copy").onclick=async()=>{
+  if(!cur.length){$("msg").textContent="Pehle phrase banao.";return}
+  const t=cur.join(" ");
+  try{await navigator.clipboard.writeText(t);$("msg").textContent="Copy ho gaya. Kaam ke baad clipboard saaf kar dena.";return}catch(e){}
+  try{const a=$("txt");a.classList.remove("hide");a.focus();a.select();a.setSelectionRange(0,t.length);
+    if(document.execCommand("copy")){$("msg").textContent="Copy ho gaya.";show();return}}catch(e){}
+  $("msg").textContent="Auto-copy block hai. Neeche box ke text ko dabakar select karke copy karo.";
+};
+function toBits(ws){return ws.map(w=>W.indexOf(w).toString(2).padStart(11,"0")).join("")}
+function csBits(bits,el){
+  const by=new Uint8Array(el/8);for(let i=0;i<by.length;i++)by[i]=parseInt(bits.slice(i*8,i*8+8),2);
+  return ((sha256(by)[0]>>>24)&255).toString(2).padStart(8,"0").slice(0,el/32);
+}
+function checkPhrase(str){
+  const ws=str.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if(!ws.length)return["bad","Pehle words daalo."];
+  if(![12,15,18,21,24].includes(ws.length))return["bad","Words ki ginti "+ws.length+" hai. 12, 15, 18, 21 ya 24 words chahiye."];
+  const unk=ws.filter(w=>W.indexOf(w)<0);
+  if(unk.length)return["bad","Ye word list mein nahi hai: "+unk.slice(0,3).join(", ")+(unk.length>3?" ...":"")+". Spelling check karo."];
+  const bits=toBits(ws),el=ws.length*11*32/33;
+  if(csBits(bits,el)!==bits.slice(el))return["bad","Saare words list mein hain, par checksum galat hai. Ye valid phrase nahi hai (koi word galat ya order badla hua)."];
+  return["ok","Valid BIP39 phrase hai. Ye tool sirf format check karta hai, wallet mein paisa hai ya nahi ye nahi batata."];
+}
+$("chkgo").onclick=()=>{const r=checkPhrase($("chk").value);const o=$("chkout");o.className=r[0];o.textContent=r[1]};
+function explain(){
+  if(!cur.length)return;
+  const bits=toBits(cur),el=cur.length*11*32/33;
+  let h='<div class="bits"><span class="ent">'+bits.slice(0,el).replace(/(.{8})/g,"$1 ").trim()+'</span> <span class="cs">'+bits.slice(el)+'</span></div>';
+  h+='<p>1. Device ne '+el+' random bits banaye (upar normal text).<br>2. Unka SHA-256 liya, uske pehle '+(el/32)+' bits checksum bane (hare, bold).<br>3. Kul '+bits.length+' bits ko 11-11 ke tukdon mein baanta. Har tukda 0 se 2047 tak ek number hai, aur wahi list ka word hai.</p>';
+  h+='<div class="tw"><table><tr><th>#</th><th>11 bits</th><th>No.</th><th>Word</th></tr>';
+  cur.forEach((w,i)=>{const b=bits.slice(i*11,i*11+11);h+="<tr><td>"+(i+1)+"</td><td>"+b+"</td><td>"+parseInt(b,2)+"</td><td>"+w+"</td></tr>"});
+  $("how").innerHTML=h+"</table></div>";
+}
+run();
+
+</script></body></html>
